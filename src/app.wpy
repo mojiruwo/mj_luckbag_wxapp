@@ -1,0 +1,174 @@
+<style lang="less">
+@import './style/weui.less';
+page{
+    background-color: #F8F8F8;
+    font-size: 16px;
+    font-family: -apple-system-font,Helvetica Neue,Helvetica,sans-serif;
+}
+.page__hd {
+    padding: 40px;
+}
+.page__bd {
+    padding-bottom: 40px;
+}
+.page__bd_spacing {
+    padding-left: 15px;
+    padding-right: 15px;
+}
+
+.page__ft{
+    padding-bottom: 10px;
+    text-align: center;
+}
+
+.page__title {
+    text-align: left;
+    font-size: 20px;
+    font-weight: 400;
+}
+
+.page__desc {
+    margin-top: 5px;
+    color: #888888;
+    text-align: left;
+    font-size: 14px;
+}
+</style>
+
+<script>
+
+import wepy from 'wepy';
+import 'wepy-async-function';
+import {
+    USER_SPECICAL_INFO,
+    USER_INFO,
+    SYSTEM_INFO,
+    ADDRESS_ID,
+    SEL_CLASS_CODE,
+    ACCESS_TOKEN
+} from './utils/constant';
+import {
+    wxJsCode2Session,
+    getAccessToken
+} from './api/api';
+import tip from './utils/tip';
+export default class extends wepy.app {
+
+    config = {
+        'pages': [
+            'pages/luckbag',
+            'pages/login',
+            'pages/receive',
+        ],
+        'window': {
+            'navigationBarTextStyle': 'black',
+            'navigationBarTitleText': '集福袋，赢话费',
+            'navigationBarBackgroundColor': '#f8f8f8',
+            'backgroundColor': '#f8f8f8'
+        },
+        'networkTimeout': {
+            'request': 10000,
+            'connectSocket': 10000,
+            'uploadFile': 10000,
+            'downloadFile': 10000
+        }
+    };
+
+    constructor () {
+        super();
+        this.use('promisify');
+        this.use('requestfix');
+        // console.log(wepy);
+    }
+    globalData = {
+        userInfo: null
+    }
+    async onLaunch(options) {
+        console.log(options);
+        let that = this;
+        /*that.getUserInfo(function() {
+            let accessToken = wepy.getStorageSync(ACCESS_TOKEN) || {};
+            console.log(accessToken); 
+        });*/
+        if(options.query.share_key){
+            wepy.setStorageSync('user_sharekey', options.query.share_key);
+        }
+        // 存储系统信息
+        let systemInfo = wepy.getSystemInfoSync();
+        wepy.setStorageSync(SYSTEM_INFO, systemInfo);
+    }
+    redirectLogin () {
+        wx.redirectTo({
+          url: '/pages/login'
+        })
+    }
+    redirectReceive () {
+        wx.redirectTo({
+          url: '/pages/receive'
+        })
+    }
+    codeRedirect (res) {
+        switch (res.code) {
+            case '0':
+                tip.modal(res.msg);
+                break;
+            case '40001':
+                tip.modal(res.msg,this.redirectLogin());
+                break;
+            case '40002':
+                tip.modal(res.msg,this.redirectReceive());
+                break;
+            case '40003':
+                tip.modal(res.msg);
+                break;
+        }
+    }
+    async getUserInfo (cb) {
+        // 用户信息
+        let userSpecialInfo = wepy.getStorageSync(USER_SPECICAL_INFO) || {};
+        // 用户普通信息
+        let userInfo = wepy.getStorageSync(USER_INFO) || {};
+        // 获取accesstoken
+        let accessToken = wepy.getStorageSync(ACCESS_TOKEN) || {};
+        if (accessToken) {
+            cb && cb();
+        }
+        // 如果信息过期
+        if ((!accessToken.access_token || (accessToken.expires_in || Date.now()) < (Date.now() + 600))) {
+            let res = await wepy.login();
+            if (res.code) {
+                // 存储userInfo
+                let c = await wepy.getUserInfo();
+                wepy.setStorageSync(USER_INFO, c.userInfo);
+                getAccessToken({
+                    query: {
+                        code: res.code,
+                        rawData: c.rawData,
+                        signature: c.signature,
+                        encryptedData: c.encryptedData,
+                        iv: c.iv
+                    }
+                }).then(resp => {
+                    var rlt = resp.data;
+                    //console.log('getAccessToken...' + JSON.stringify(rlt));
+                    if (rlt.code == 0) {
+                        var data = rlt;
+                        if (data.access_token) {
+                            let obj = {};
+                            obj.access_token = data.access_token;
+                            obj.expires_in = Date.now() + data.expires_in*1000;
+                            // 存储accesstoken
+                            wepy.setStorageSync(ACCESS_TOKEN, obj);
+                            cb && cb();
+                        }
+                    } else {
+                        console.log('获取信息失败' + res.errMsg);
+                    }
+                });
+            } else {
+                console.log('获取用户登录态失败！' + res.errMsg);
+            }
+        }
+    }
+}
+</script>

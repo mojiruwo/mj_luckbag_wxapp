@@ -1,0 +1,123 @@
+<style lang="less">
+    page{
+        background-color:#F1F1F1;
+    }
+    .page__bd{
+        padding:0 5%;
+    }
+    .weui-cell{
+        border-left:2rpx solid #D9D9D9;
+        border-right:2rpx solid #D9D9D9;
+    }
+    .weui-cell::before{
+        left:0;
+    }
+    .page_idcard{
+        margin-bottom:40rpx;
+    }
+    .weui-vcode-btn{
+        background-color:#FA4B5C;
+        color:#fff;
+    }
+    button[type="primary"]{
+        background-color:#FA4B5C;
+    }
+    .weui-cell__hd{
+         .weui-label{
+            width:90rpx;
+            text-align:center;
+            image{
+                vertical-align:middle;
+            }
+        }
+    }
+    .weui-cell{
+        padding:0;
+    }
+    .btn-gray{
+        background-color:#ccc;
+    }
+</style>
+<template>
+    <view class="page">
+        <view class="page__hd">
+            <view class="" style="text-align:center;"><image src="../images/register/banklogo.png" style="width:489rpx;height:101rpx;"></image></view>
+        </view>
+        <view class="page__bd">
+            <view class="weui-cells weui-cells_after-title">
+                <view class="weui-cell weui-cell_input weui-cell_vcode">
+                    <view class="weui-cell__hd">
+                        <view class="weui-label"><image style="width:45rpx;height:64.5rpx;" src="../images/register/mobile.png"></image></view>
+                    </view>
+                    <view class="weui-cell__bd">
+                        <input class="weui-input" @input="changeMobile" placeholder="请输入手机号" />
+                    </view>
+                    <view class="weui-cell__ft">
+                        <view class="weui-vcode-btn" @tap="getReceive">{{getText}}</view>
+                    </view>
+                </view>
+                <!-- <view class="weui-cell weui-cell_input weui-cell_vcode">
+                    <view class="weui-cell__hd">
+                        <view class="weui-label"><image style="width:40.5rpx;height:52.5rpx;" src="../images/register/code.png"></image></view>
+                    </view>
+                    <view class="weui-cell__bd">
+                        <input class="weui-input" @input="changeCode" placeholder="请输入验证码" />
+                    </view>
+                </view> -->
+            </view>
+            <!-- <view class="weui-btn-area">
+                <button class="weui-btn login-button" type="primary" @tap="loginUser">登录</button>
+            </view> -->
+        </view>
+    </view>
+</template>
+
+<script>
+    import wepy from 'wepy';
+    import {
+        receiveMoney
+    } from '../api/api';
+    import tip from '../utils/tip';
+    export default class Receive extends wepy.page {
+
+        data = {
+            linPhone: '',
+            getText: '立即领取'
+        };
+
+        methods = {
+            changeMobile (e) {
+                //console.log(e);
+                let that = this;
+                that.linPhone = e.detail.value;
+            },
+            getReceive () {
+                var that = this;
+                var phone = this.linPhone;
+                if (! (/^1[34578]\d{9}$/.test(phone))) {
+                    tip.alert("手机号有误"); 
+                    return false; 
+                } else {
+                    that.$parent.getUserInfo(() => {
+                        receiveMoney({
+                            query: {
+                                mobile: phone
+                            }
+                        }).then((res) => {
+                            if(res.data.code == 1){
+                                tip.success(res.data.msg);
+                            }else{
+                                tip.alert(res.data.msg);
+                            }
+                        });
+                    });
+                }
+            }
+
+        };
+
+        onLoad () {
+
+        }
+    }
+</script>

@@ -1,0 +1,226 @@
+<style lang="less">
+    page{
+        background-color:#F1F1F1;
+    }
+    .page__bd{
+        padding:0 5%;
+    }
+    .weui-cell{
+        border-left:2rpx solid #D9D9D9;
+        border-right:2rpx solid #D9D9D9;
+    }
+    .weui-cell::before{
+        left:0;
+    }
+    .page_idcard{
+        margin-bottom:40rpx;
+    }
+    .weui-vcode-btn{
+        background-color:#FA4B5C;
+        color:#fff;
+    }
+    button[type="primary"]{
+        background-color:#FA4B5C;
+    }
+    .weui-cell__hd{
+         .weui-label{
+            width:90rpx;
+            text-align:center;
+            image{
+                vertical-align:middle;
+            }
+        }
+    }
+    .weui-cell{
+        padding:0;
+    }
+    .btn-gray{
+        background-color:#ccc;
+    }
+</style>
+<template>
+    <view class="page">
+        <view class="page__hd">
+            <view class="" style="text-align:center;"><image src="../images/register/banklogo.png" style="width:489rpx;height:101rpx;"></image></view>
+        </view>
+        <view class="page__bd page_idcard">
+            <view class="weui-cells weui-cells_after-title">
+                <!-- <view class="weui-cell weui-cell_input">
+                    <view class="weui-cell__hd">
+                        <view class="weui-label"><image src="../images/register/code.png"></image></view>
+                    </view>
+                    <view class="weui-cell__bd">
+                        <input class="weui-input" placeholder="请输入姓名" />
+                    </view>
+                </view> -->
+                <view class="weui-cell weui-cell_input">
+                    <view class="weui-cell__hd">
+                        <view class="weui-label"><image style="width:63rpx;height:45rpx;" src="../images/register/idcard.png"></image></view>
+                    </view>
+                    <view class="weui-cell__bd">
+                        <input class="weui-input" @input="changeIdcard" placeholder="请输入身份证号" />
+                    </view>
+                </view>
+            </view>
+        </view>
+        <view class="page__bd">
+            <view class="weui-cells weui-cells_after-title">
+                <view class="weui-cell weui-cell_input weui-cell_vcode">
+                    <view class="weui-cell__hd">
+                        <view class="weui-label"><image style="width:45rpx;height:64.5rpx;" src="../images/register/mobile.png"></image></view>
+                    </view>
+                    <view class="weui-cell__bd">
+                        <input class="weui-input" @input="changeMobile" placeholder="请输入手机号" />
+                    </view>
+                    <view class="weui-cell__ft">
+                        <view class="weui-vcode-btn {{getChange?'':'btn-gray'}}" @tap="getCode">{{getText}}</view>
+                    </view>
+                </view>
+                <view class="weui-cell weui-cell_input weui-cell_vcode">
+                    <view class="weui-cell__hd">
+                        <view class="weui-label"><image style="width:40.5rpx;height:52.5rpx;" src="../images/register/code.png"></image></view>
+                    </view>
+                    <view class="weui-cell__bd">
+                        <input class="weui-input" @input="changeCode" placeholder="请输入验证码" />
+                    </view>
+                    <!-- <view class="weui-cell__ft">
+                        <image class="weui-vcode-img" src="../images/vcode.png" style="width: 108px"></image>
+                    </view> -->
+                </view>
+            </view>
+            <view class="weui-btn-area">
+                <button class="weui-btn login-button" type="primary" @tap="loginUser">登录</button>
+            </view>
+        </view>
+    </view>
+</template>
+
+<script>
+    import wepy from 'wepy';
+    import {
+        sendSms,
+        registerUser
+    } from '../api/api';
+    import tip from '../utils/tip';
+    export default class Login extends wepy.page {
+
+        data = {
+            linPhone: '',
+            idcard: '',
+            smscode: '',
+            huozheng: '',
+            zhengTrue: false,
+            getChange: true,
+            getText: '获取验证码'
+        };
+
+        methods = {
+            changeIdcard (e) {
+                let that = this;
+                that.idcard = e.detail.value;
+            },
+            changeMobile (e) {
+                //console.log(e);
+                let that = this;
+                that.linPhone = e.detail.value;
+            },
+            changeCode (e) {
+                this.smscode = e.detail.value;
+            },  
+            showTopTips () {
+                this.tipsFlag = true;
+                setTimeout(() => {
+                    this.tipsFlag = false;
+                    this.$apply();
+                }, 3000);
+            },
+            loginUser () {
+                let that = this;
+                let idcard = that.idcard,
+                phone = that.linPhone,
+                smscode = that.smscode;
+                let share_key = wepy.getStorageSync('user_sharekey') || '';
+                let idcardreg = /(^\d{15}$)|(^\d{18}$)|(^\d{17}(\d|X|x)$)/; 
+                /*if(idcardreg.test(idcard) === false) 
+                { 
+                    tip.alert("身份证有误"); 
+                    return false; 
+                }
+                if (! (/^1[34578]\d{9}$/.test(phone))) {
+                    tip.alert("手机号有误"); 
+                    return false; 
+                }*/
+                if (smscode.length < 4) {
+                    tip.alert("验证码有误"); 
+                    return false;
+                }
+                that.$parent.getUserInfo(() => {
+                    registerUser({
+                        query: {
+                            mobile: phone,
+                            code: smscode,
+                            idcard: idcard,
+                            share_key: share_key
+                        }
+                    }).then((res) => {
+                        console.log(res);
+                        if(res.data.code == 1){
+                            wx.redirectTo({
+                              url: 'luckbag'
+                            })
+                        }else{
+                            tip.confirm(res.data.msg);
+                        }
+                    });
+                });
+            },
+            getCode () {
+                // console.log(app.globalData.userId);
+                var getChange = this.getChange;
+                var n = 59;
+                var that = this;
+                var phone = this.linPhone;
+                console.log(phone) 
+                if (! (/^1[34578]\d{9}$/.test(phone))) {
+                    tip.alert("手机号有误"); 
+                    return false; 
+                } else {
+                    if (getChange) {
+                        that.getChange = false;
+                        that.$parent.getUserInfo(() => {
+                            sendSms({
+                                query: {
+                                    mobile: phone
+                                }
+                            }).then((res) => {
+                                if(res.data.code == 1){
+                                    tip.confirm(res.data.data);
+                                    var time = setInterval(function() {
+                                        var str = '(' + n + ')' + '重新获取'
+                                        that.getText = str;
+                                        if (n <= 0) {
+                                            that.getChange = true;
+                                            that.getText = '重新获取';
+                                            clearInterval(time);
+                                        }
+                                        n--;
+                                        //console.log(str);
+                                        that.$apply();
+                                    },
+                                    1000);
+                                }else{
+                                    tip.alert(res.data.msg);
+                                }
+                            });
+                        });
+                    }
+                }
+            }
+
+        };
+
+        onLoad () {
+
+        }
+    }
+</script>
