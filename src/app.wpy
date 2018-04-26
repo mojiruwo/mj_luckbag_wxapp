@@ -59,6 +59,7 @@ export default class extends wepy.app {
             'pages/luckbag',
             'pages/login',
             'pages/receive',
+            'pages/notice'
         ],
         'window': {
             'navigationBarTextStyle': 'black',
@@ -88,7 +89,7 @@ export default class extends wepy.app {
         let that = this;
         /*that.getUserInfo(function() {
             let accessToken = wepy.getStorageSync(ACCESS_TOKEN) || {};
-            console.log(accessToken); 
+            console.log(accessToken);
         });*/
         if(options.query.share_key){
             wepy.setStorageSync('user_sharekey', options.query.share_key);

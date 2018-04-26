@@ -3,7 +3,7 @@
         background-color:#F1F1F1;
     }
     .page__bd{
-        padding:0 5%;
+        padding:15% 5%;
     }
     .weui-cell{
         border-left:2rpx solid #D9D9D9;
@@ -20,7 +20,8 @@
         color:#fff;
     }
     button[type="primary"]{
-        background-color:#FA4B5C;
+        /*background-color:#FA4B5C;*/
+        background-color:#09BA07;
     }
     .weui-cell__hd{
          .weui-label{
@@ -37,25 +38,34 @@
     .btn-gray{
         background-color:#ccc;
     }
+    .pos-bottom{
+        width:100%;
+        position: absolute;
+        bottom: 40rpx;
+    }
 </style>
 <template>
     <view class="page">
-        <view class="page__hd">
+        <!--<view class="page__hd">
             <view class="" style="text-align:center;"><image src="../images/register/banklogo.png" style="width:489rpx;height:101rpx;"></image></view>
-        </view>
+        </view>-->
         <view class="page__bd">
             <view class="weui-cells weui-cells_after-title">
                 <view class="weui-cell weui-cell_input weui-cell_vcode">
-                    <view class="weui-cell__hd">
+                    <!--<view class="weui-cell__hd">
                         <view class="weui-label"><image style="width:45rpx;height:64.5rpx;" src="../images/register/mobile.png"></image></view>
-                    </view>
+                    </view>-->
                     <view class="weui-cell__bd">
-                        <input class="weui-input" @input="changeMobile" placeholder="请输入手机号" />
+                        <input class="weui-input" style="padding:0 20rpx;" @input="changeMobile" placeholder="请输入手机号码" />
                     </view>
-                    <view class="weui-cell__ft">
-                        <view class="weui-vcode-btn" @tap="getReceive">{{getText}}</view>
+                    <view class="weui-cell__hd">
+                        <view class="weui-label"><image style="width:52rpx;height:58rpx;" src="../images/register/user.png"></image></view>
                     </view>
+                    <!--<view class="weui-cell__ft">-->
+                        <!--<view class="weui-vcode-btn" @tap="getReceive">{{getText}}</view>-->
+                    <!--</view>-->
                 </view>
+
                 <!-- <view class="weui-cell weui-cell_input weui-cell_vcode">
                     <view class="weui-cell__hd">
                         <view class="weui-label"><image style="width:40.5rpx;height:52.5rpx;" src="../images/register/code.png"></image></view>
@@ -65,10 +75,14 @@
                     </view>
                 </view> -->
             </view>
-            <!-- <view class="weui-btn-area">
-                <button class="weui-btn login-button" type="primary" @tap="loginUser">登录</button>
-            </view> -->
+            <view class="weui-btn-area">
+                <!--<button class="weui-btn login-button" type="primary" @tap="loginUser">登陆</button>-->
+                <button class="weui-btn login-button" type="primary" @tap="getReceive">确认充值</button>
+            </view>
         </view>
+    </view>
+    <view class="weui-footer pos-bottom">
+        <view class="weui-footer__text">本活动最终解释权归锦州银行所有</view>
     </view>
 </template>
 
@@ -95,8 +109,8 @@
                 var that = this;
                 var phone = this.linPhone;
                 if (! (/^1[34578]\d{9}$/.test(phone))) {
-                    tip.alert("手机号有误"); 
-                    return false; 
+                    tip.alert("手机号有误");
+                    return false;
                 } else {
                     that.$parent.getUserInfo(() => {
                         receiveMoney({
@@ -105,9 +119,15 @@
                             }
                         }).then((res) => {
                             if(res.data.code == 1){
-                                tip.success(res.data.msg);
+//                                tip.success(res.data.msg);
+                                wx.redirectTo({
+                                    url: 'notice?code=' + res.data.code
+                                });
                             }else{
-                                tip.alert(res.data.msg);
+//                                tip.alert(res.data.msg);
+                                wx.redirectTo({
+                                    url: 'notice?code=' + res.data.code
+                                });
                             }
                         });
                     });
