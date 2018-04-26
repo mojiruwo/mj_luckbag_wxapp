@@ -1,0 +1,61 @@
+<style lang="less">
+    page{
+        background-color:#F1F1F1;
+    }
+    button[type="primary"]{
+        /*background-color:#FA4B5C;*/
+        background-color:#09BA07;
+    }
+    .weui-cell__hd{
+    .weui-label{
+        width:90rpx;
+        text-align:center;
+    image{
+        vertical-align:middle;
+    }
+    }
+    }
+</style>
+<template>
+    <view class="page msg_success js_show">
+        <view class="weui-msg">
+            <view class="weui-msg__icon-area"><icon type="{{iconType}}" size="70"/></view>
+            <view class="weui-msg__text-area">
+                <view class="weui-msg__title">{{noticeTitle}}</view>
+                <view class="weui-msg__desc">{{noticeDesc}}</view>
+            </view>
+            <view class="weui-msg__extra-area">
+                <view class="weui-footer">
+                    <view class="weui-footer__text">本活动最终解释权归锦州银行所有</view>
+                </view>
+            </view>
+        </view>
+    </view>
+</template>
+<script>
+    import wepy from 'wepy';
+    import {
+        receiveMoney
+    } from '../api/api';
+    import tip from '../utils/tip';
+    export default class Notice extends wepy.page {
+
+        data = {
+            iconType: 'success',
+            noticeTitle: '充值成功',
+            noticeDesc: '充值成功后，10到20话费在10-20分钟后到账'
+        };
+
+        methods = {
+
+        };
+
+        onLoad (res) {
+            if (parseInt(res.code) === 0) {
+                this.iconType = 'warn';
+                this.noticeTitle = '充值失败';
+                this.noticeDesc = '充值失败，请联系客服400-451-4456';
+            }
+        }
+    }
+</script>
